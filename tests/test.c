@@ -11,7 +11,7 @@ static char thread_two_stack[ TMP_STACK_SIZE ];
 static volatile int flag_one = 0;
 static volatile int flag_two = 0;
 
-void thread_one( void )
+static void thread_one( void )
 {
 	printf( "%s started\n", __PRETTY_FUNCTION__ );
 	printf( "User data: %s\n", (char *)ath_get_user_data() );
@@ -24,7 +24,7 @@ void thread_one( void )
 	printf( "%s ended\n", __PRETTY_FUNCTION__ );
 }
 
-void thread_two( void )
+static void thread_two( void )
 {
 	printf( "%s started\n", __PRETTY_FUNCTION__ );
 	printf( "User data: %s\n", (char *)ath_get_user_data() );

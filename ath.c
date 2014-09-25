@@ -6,7 +6,6 @@
 
 #define ATH_SCHED_QUEUE_SIZE 5
 #define ATH_SCHED_STACK_SIZE 2048
-#define ATH_NO_ACTIVE_THREADS -1
 
 struct ath_priv_context
 {
