@@ -33,15 +33,23 @@ static struct sched_data
 	struct ath_priv_context scheduler_context;
 } sched_data;
 
-// static void ath_priv_context_swap( struct ath_priv_context *allocated_ctx_to_save, struct ath_priv_context *allocated_ctx_to_restore )
-// {
-//	/* todo */
-// }
+static void ath_priv_context_swap( struct ath_priv_context *allocated_ctx_to_save, struct ath_priv_context *allocated_ctx_to_restore )
+{
+	swapcontext( &allocated_ctx_to_save->ctx, &allocated_ctx_to_restore->ctx );
+}
 
-// static void ath_priv_context_create()
-// {
-//	/* todo */
-// }
+static void ath_priv_context_create( struct ath_priv_context *allocated_ctx,
+				     ath_fn main_fn,
+				     char *stack,
+				     int stack_size,
+				     struct ath_priv_context *optional_return_context )
+{
+	getcontext( &allocated_ctx->ctx );
+	allocated_ctx->ctx.uc_link = optional_return_context == NULL ? NULL : &optional_return_context->ctx;
+	allocated_ctx->ctx.uc_stack.ss_sp = stack;
+	allocated_ctx->ctx.uc_stack.ss_size = stack_size;
+	makecontext( &allocated_ctx->ctx, main_fn, 0 );
+}
 
 static void ath_sched( void )
 {
@@ -56,7 +64,7 @@ static void ath_sched( void )
 			continue;
 		}
 		// printf( "next: %d\n", sched_data.active_thread );
-		swapcontext( &sched_data.scheduler_context.ctx, &sched_data.threads_tab[ sched_data.active_thread ].thread_context.ctx );
+		ath_priv_context_swap( &sched_data.scheduler_context, &sched_data.threads_tab[ sched_data.active_thread ].thread_context );
 	}
 }
 
@@ -66,11 +74,7 @@ int ath_init( void )
 	sched_data.active_threads_count = 1;
 	sched_data.active_thread = 0;
 
-	getcontext( &sched_data.scheduler_context.ctx );
-	sched_data.scheduler_context.ctx.uc_link = NULL;
-	sched_data.scheduler_context.ctx.uc_stack.ss_sp = sched_data.scheduler_stack;
-	sched_data.scheduler_context.ctx.uc_stack.ss_size = ATH_SCHED_STACK_SIZE;
-	makecontext( &sched_data.scheduler_context.ctx, ( void (*)( void ) )ath_sched, 0 );
+	ath_priv_context_create( &sched_data.scheduler_context, ath_sched, sched_data.scheduler_stack, ATH_SCHED_STACK_SIZE, NULL );
 
 	return 1;
 }
@@ -88,18 +92,16 @@ ath_id ath_create( ath_fn main_fn, void *user_data, char *stack, int stack_size 
 	++sched_data.threads_tab_first_free;
 	
 	++sched_data.active_threads_count;
-
-	getcontext( &sched_data.threads_tab[ new_thread_id ].thread_context.ctx );
-	sched_data.threads_tab[ new_thread_id ].thread_context.ctx.uc_link = &sched_data.scheduler_context.ctx;
-	sched_data.threads_tab[ new_thread_id ].thread_context.ctx.uc_stack.ss_sp = stack;
-	sched_data.threads_tab[ new_thread_id ].thread_context.ctx.uc_stack.ss_size = stack_size;
 	
 	sched_data.threads_tab[ new_thread_id ].finished = 0;
 	sched_data.threads_tab[ new_thread_id ].main_fn = main_fn;
-	
 	sched_data.threads_tab[ new_thread_id ].user_data = user_data;
-
-	makecontext( &sched_data.threads_tab[ new_thread_id ].thread_context.ctx, ( void (*)( void ) )ath_thread_entry_point, 0 );
+	
+	ath_priv_context_create( &sched_data.threads_tab[ new_thread_id ].thread_context,
+				 ath_thread_entry_point,
+				 stack,
+				 stack_size,
+				 &sched_data.scheduler_context );
 
 	return new_thread_id;
 }
@@ -118,7 +120,7 @@ int ath_destroy( const ath_id id )
 void ath_yield( void )
 {
 	// printf( "[YIELD] creating thread context (active: %d)\n", sched_data.active_thread );
-	swapcontext( &sched_data.threads_tab[ sched_data.active_thread ].thread_context.ctx, &sched_data.scheduler_context.ctx );
+	ath_priv_context_swap( &sched_data.threads_tab[ sched_data.active_thread ].thread_context, &sched_data.scheduler_context );
 	// printf( "[YIELD] returned here (active: %d)\n", sched_data.active_thread );
 }
 
