@@ -13,7 +13,7 @@
 	} \
 	while(0)
 
-typedef void ( *ath_fn )( void *user_data );
+typedef void ( *ath_fn )( void );
 typedef int ath_id;
 
 int ath_init( void );
