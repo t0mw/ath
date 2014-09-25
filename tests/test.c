@@ -14,6 +14,7 @@ static volatile int flag_two = 0;
 void thread_one( void )
 {
 	printf( "%s started\n", __PRETTY_FUNCTION__ );
+	printf( "User data: %s\n", (char *)ath_get_user_data() );
 	while( !flag_one )
 	{
 		printf( "%s yielding proc\n", __PRETTY_FUNCTION__ );
@@ -26,6 +27,7 @@ void thread_one( void )
 void thread_two( void )
 {
 	printf( "%s started\n", __PRETTY_FUNCTION__ );
+	printf( "User data: %s\n", (char *)ath_get_user_data() );
 	while( !flag_two )
 	{
 		printf( "%s yielding proc\n", __PRETTY_FUNCTION__ );
@@ -49,6 +51,7 @@ int main( void )
 	ath_id th_two_id = ath_create( thread_two, NULL, thread_two_stack, TMP_STACK_SIZE );
 	ATH_CHECK( th_two_id );
 	printf( "Thread two ID: %d\n", th_two_id );
+	ath_set_user_data( th_two_id, (void *)"This is user data for thread no 2." );
 	
 	int scheds_counter = 0;
 	while( 1 )
@@ -63,12 +66,12 @@ int main( void )
 		ath_yield();
 
 		++scheds_counter;
-		if( scheds_counter == 1 )
+		if( scheds_counter == 2 )
 		{
 			printf( "Setting flag one\n" );
 			flag_one = 1;
 		}
-		else if( scheds_counter == 2 )
+		else if( scheds_counter == 4 )
 		{
 			printf( "Setting flag two\n" );
 			flag_two = 1;

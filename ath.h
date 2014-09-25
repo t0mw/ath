@@ -1,8 +1,6 @@
 #ifndef ATH_H_INCLUDED
 #define ATH_H_INCLUDED
 
-#define ATH_UNUSED( arg ) (void)arg
-
 #define ATH_CHECK( return_code ) do \
 	{ \
 		if( return_code < 0 ) \
@@ -22,6 +20,7 @@ int ath_active_threads_count( void );
 int ath_destroy( const ath_id id );
 void ath_yield( void );
 void ath_set_user_data( const ath_id id, void *user_data );
+void *ath_get_user_data( void ); // Get user_data of current thread
 void ath_set_main_fn( const ath_id id, ath_fn main_fn );
 
 #endif

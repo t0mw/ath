@@ -96,6 +96,8 @@ ath_id ath_create( ath_fn main_fn, void *user_data, char *stack, int stack_size 
 	
 	sched_data.threads_tab[ new_thread_id ].finished = 0;
 	sched_data.threads_tab[ new_thread_id ].main_fn = main_fn;
+	
+	sched_data.threads_tab[ new_thread_id ].user_data = user_data;
 
 	makecontext( &sched_data.threads_tab[ new_thread_id ].thread_context.ctx, ( void (*)( void ) )ath_thread_entry_point, 0 );
 
@@ -109,7 +111,7 @@ int ath_active_threads_count( void )
 
 int ath_destroy( const ath_id id )
 {
-	ATH_UNUSED( id );
+	sched_data.threads_tab[ id ].finished = 1;
 	return 1;
 }
 
@@ -123,6 +125,11 @@ void ath_yield( void )
 void ath_set_user_data( const ath_id id, void *user_data )
 {
 	sched_data.threads_tab[ id ].user_data = user_data;
+}
+
+void *ath_get_user_data( void )
+{
+	return sched_data.threads_tab[ sched_data.active_thread ].user_data;
 }
 
 void ath_set_main_fn( const ath_id id, ath_fn main_fn )
