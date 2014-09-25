@@ -19,7 +19,6 @@ void thread_one( void )
 		printf( "%s yielding proc\n", __PRETTY_FUNCTION__ );
 		sleep(2);
 		ath_yield();
-		printf( "Thread one after yield\n" );
 	}
 	printf( "%s ended\n", __PRETTY_FUNCTION__ );
 }
@@ -32,7 +31,6 @@ void thread_two( void )
 		printf( "%s yielding proc\n", __PRETTY_FUNCTION__ );
 		sleep(2);
 		ath_yield();
-		printf( "Thread two after yield\n" );
 	}
 	printf( "%s ended\n", __PRETTY_FUNCTION__ );
 }
@@ -56,11 +54,11 @@ int main( void )
 	while( 1 )
 	{
 		int active_threads = ath_active_threads_count();
-		if( active_threads == 0 )
+		printf( "Currently active threads: %d\n", active_threads );
+		if( active_threads == 1 )
 		{
 			break;
 		}
-		printf( "Currently active threads: %d\n", active_threads );
 
 		ath_yield();
 
@@ -74,10 +72,6 @@ int main( void )
 		{
 			printf( "Setting flag two\n" );
 			flag_two = 1;
-		}
-		else if( scheds_counter == 3 )
-		{
-			break;
 		}
 	}
 
