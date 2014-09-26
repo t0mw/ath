@@ -53,7 +53,7 @@ static void ath_priv_context_create( struct ath_priv_context *allocated_ctx,
 static void ath_sched( void )
 {
 	// Round robin
-	while(1)
+	while( 1 )
 	{
 		// printf( "[SCHED] start, active thread: %d , first free: %d ", sched_data.active_thread, sched_data.threads_tab_first_free );
 		sched_data.active_thread = ( sched_data.active_thread + 1 ) % sched_data.threads_tab_first_free;
